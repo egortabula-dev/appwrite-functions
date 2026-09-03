@@ -11,12 +11,15 @@ topics:
   - serverless
   - easy-flutter
 
-# Floor raised from >=3.0.0 to ^3.9.0 when this package joined the monorepo pub
-# workspace (EAS-7): pub workspaces forbid a floor below 3.6 and the workspace is
-# pinned at 3.9 (ADR-005). Trade-off accepted: drops Appwrite Functions runtimes
-# on Dart 3.0–3.8. Keeps very_good_analysis (backend util's own rules — ADR-002).
+# Floor is 3.8 because the code uses null-aware elements, a 3.8 language
+# feature — and because Appwrite ships no Dart runtime above 3.8 (1.9.6 knows
+# 3.0, 3.1, 3.3, 3.5, 3.8). A wrapper for Appwrite Functions that no Appwrite
+# Functions runtime can load is a wrapper for nothing, so the floor follows the
+# newest runtime, not the newest SDK. Pub workspaces forbid a floor below 3.6,
+# so 3.8 sits comfortably inside (ADR-001, ADR-005). very_good_analysis 10 needs
+# 3.9, but it is a dev dependency: consumers never resolve it (ADR-002).
 environment:
-  sdk: ^3.9.0
+  sdk: ^3.8.0
 
 # Member of the root pub workspace (ADR-001).
 resolution: workspace
