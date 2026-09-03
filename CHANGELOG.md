@@ -1,3 +1,12 @@
+## 0.3.0
+
+> Note: This release has breaking changes.
+
+ - **REFACTOR**: doc/mcp становится просто doc. ([4caeef28](https://github.com/Widgyio/packages/commit/4caeef28ecc2a0c72b2398037e299856e37689a0))
+ - **FIX**(widgy_appwrite_context): опустить порог SDK до 3.8. ([a4f0ecdd](https://github.com/Widgyio/packages/commit/a4f0ecdd108e7a1c51477bd77d1dfaf79e39e2d1))
+ - **DOCS**(widgy_appwrite_context): документация постранично, русская и английская. ([6a7e753a](https://github.com/Widgyio/packages/commit/6a7e753a7ff2290f8337c7e7860ed7b24c8c5062))
+ - **BREAKING** **CHORE**: переименование в Widgy ([#31](https://github.com/Widgyio/packages/issues/31)). ([66fda4db](https://github.com/Widgyio/packages/commit/66fda4db29ef776cb631dbf237bcc24b082d93ed))
+
 ## [0.2.6] - 2026-04-02
 
 ### 📚 Documentation

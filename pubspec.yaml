@@ -1,6 +1,6 @@
 name: widgy_appwrite_context
 description: Type-safe wrapper for Appwrite Cloud Functions context with strongly-typed request, response, headers, environment variables, and logging.
-version: 0.2.6
+version: 0.3.0
 publish_to: https://pub.widgy.io
 homepage: https://widgy.io/packages/widgy_appwrite_context
 repository: https://github.com/Widgyio/packages
