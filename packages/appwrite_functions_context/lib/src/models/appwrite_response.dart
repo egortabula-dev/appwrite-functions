@@ -125,10 +125,7 @@ class AppwriteResponse {
   /// ```
   ///
   /// See: https://appwrite.io/docs/products/functions/develop#redirect
-  AppwriteResponseResult redirect(
-    String url, {
-    int statusCode = 302,
-  }) {
+  AppwriteResponseResult redirect(String url, {int statusCode = 302}) {
     return _context.res.redirect(url, statusCode);
   }
 
@@ -172,15 +169,10 @@ class AppwriteResponse {
   ///   '<html><body><h1>Hello from Appwrite!</h1></body></html>',
   /// );
   /// ```
-  AppwriteResponseResult html(
-    String body, {
-    int statusCode = 200,
-  }) {
-    return _context.res.text(
-      body,
-      statusCode,
-      {'Content-Type': 'text/html; charset=utf-8'},
-    );
+  AppwriteResponseResult html(String body, {int statusCode = 200}) {
+    return _context.res.text(body, statusCode, {
+      'Content-Type': 'text/html; charset=utf-8',
+    });
   }
 
   // ===========================================================================
@@ -273,14 +265,11 @@ class AppwriteResponse {
     String message, {
     Map<String, dynamic>? details,
   }) {
-    return json(
-      {
-        'error': 'Bad Request',
-        'message': message,
-        'details': ?details,
-      },
-      statusCode: 400,
-    );
+    return json({
+      'error': 'Bad Request',
+      'message': message,
+      'details': ?details,
+    }, statusCode: 400);
   }
 
   /// Send an unauthorized error response with HTTP 401 status code.
@@ -296,13 +285,7 @@ class AppwriteResponse {
   AppwriteResponseResult unauthorized([
     String message = 'Authentication required',
   ]) {
-    return json(
-      {
-        'error': 'Unauthorized',
-        'message': message,
-      },
-      statusCode: 401,
-    );
+    return json({'error': 'Unauthorized', 'message': message}, statusCode: 401);
   }
 
   /// Send a forbidden error response with HTTP 403 status code.
@@ -319,13 +302,7 @@ class AppwriteResponse {
   /// );
   /// ```
   AppwriteResponseResult forbidden([String message = 'Access forbidden']) {
-    return json(
-      {
-        'error': 'Forbidden',
-        'message': message,
-      },
-      statusCode: 403,
-    );
+    return json({'error': 'Forbidden', 'message': message}, statusCode: 403);
   }
 
   /// Send a not found error response with HTTP 404 status code.
@@ -340,13 +317,10 @@ class AppwriteResponse {
   /// // Returns: {"error": "Not Found", "message": "User not found"}
   /// ```
   AppwriteResponseResult notFound([String resource = 'Resource']) {
-    return json(
-      {
-        'error': 'Not Found',
-        'message': '$resource not found',
-      },
-      statusCode: 404,
-    );
+    return json({
+      'error': 'Not Found',
+      'message': '$resource not found',
+    }, statusCode: 404);
   }
 
   /// Send a method not allowed error response with HTTP 405 status code.
@@ -366,13 +340,10 @@ class AppwriteResponse {
         ? 'This endpoint only supports: ${allowed.join(', ')}'
         : 'Method not allowed';
 
-    return json(
-      {
-        'error': 'Method Not Allowed',
-        'message': message,
-      },
-      statusCode: 405,
-    );
+    return json({
+      'error': 'Method Not Allowed',
+      'message': message,
+    }, statusCode: 405);
   }
 
   /// Send a conflict error response with HTTP 409 status code.
@@ -389,13 +360,7 @@ class AppwriteResponse {
   /// );
   /// ```
   AppwriteResponseResult conflict(String message) {
-    return json(
-      {
-        'error': 'Conflict',
-        'message': message,
-      },
-      statusCode: 409,
-    );
+    return json({'error': 'Conflict', 'message': message}, statusCode: 409);
   }
 
   /// Send an unprocessable entity error response with
@@ -421,14 +386,11 @@ class AppwriteResponse {
     String message, {
     Map<String, dynamic>? errors,
   }) {
-    return json(
-      {
-        'error': 'Unprocessable Entity',
-        'message': message,
-        'errors': ?errors,
-      },
-      statusCode: 422,
-    );
+    return json({
+      'error': 'Unprocessable Entity',
+      'message': message,
+      'errors': ?errors,
+    }, statusCode: 422);
   }
 
   /// Send an internal server error response with HTTP 500 status code.
@@ -449,14 +411,11 @@ class AppwriteResponse {
     String message = 'Internal server error',
     Map<String, dynamic>? data,
   }) {
-    return json(
-      {
-        'error': 'Internal Server Error',
-        'message': message,
-        'data': ?data,
-      },
-      statusCode: 500,
-    );
+    return json({
+      'error': 'Internal Server Error',
+      'message': message,
+      'data': ?data,
+    }, statusCode: 500);
   }
 
   /// Send a too many requests error response with HTTP 429 status code.
@@ -478,14 +437,11 @@ class AppwriteResponse {
     String message = 'Too many requests',
     int? retryAfter,
   }) {
-    return json(
-      {
-        'error': 'Too Many Requests',
-        'message': message,
-        'retryAfter': ?retryAfter,
-      },
-      statusCode: 429,
-    );
+    return json({
+      'error': 'Too Many Requests',
+      'message': message,
+      'retryAfter': ?retryAfter,
+    }, statusCode: 429);
   }
 
   /// Send a service unavailable error response with HTTP 503 status code.
@@ -509,14 +465,11 @@ class AppwriteResponse {
     String message = 'Service temporarily unavailable',
     int? retryAfter,
   }) {
-    return json(
-      {
-        'error': 'Service Unavailable',
-        'message': message,
-        'retryAfter': ?retryAfter,
-      },
-      statusCode: 503,
-    );
+    return json({
+      'error': 'Service Unavailable',
+      'message': message,
+      'retryAfter': ?retryAfter,
+    }, statusCode: 503);
   }
 
   /// Send a validation error response with field-specific errors.
@@ -539,14 +492,11 @@ class AppwriteResponse {
     Map<String, List<String>> fieldErrors, {
     String message = 'Validation failed',
   }) {
-    return json(
-      {
-        'error': 'Validation Error',
-        'message': message,
-        'errors': fieldErrors,
-      },
-      statusCode: 422,
-    );
+    return json({
+      'error': 'Validation Error',
+      'message': message,
+      'errors': fieldErrors,
+    }, statusCode: 422);
   }
 
   /// Send a success response with a standard format.
@@ -570,14 +520,11 @@ class AppwriteResponse {
     Map<String, dynamic>? data,
     int statusCode = 200,
   }) {
-    return json(
-      {
-        'success': true,
-        'message': message,
-        'data': ?data,
-      },
-      statusCode: statusCode,
-    );
+    return json({
+      'success': true,
+      'message': message,
+      'data': ?data,
+    }, statusCode: statusCode);
   }
 
   // ===========================================================================

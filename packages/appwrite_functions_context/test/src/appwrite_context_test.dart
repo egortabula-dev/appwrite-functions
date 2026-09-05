@@ -2,9 +2,9 @@
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
-import 'package:widgy_appwrite_context/src/mixins/mixins.dart';
-import 'package:widgy_appwrite_context/src/utils.dart';
-import 'package:widgy_appwrite_context/widgy_appwrite_context.dart';
+import 'package:appwrite_functions_context/src/mixins/mixins.dart';
+import 'package:appwrite_functions_context/src/utils.dart';
+import 'package:appwrite_functions_context/appwrite_functions_context.dart';
 
 void main() {
   group('AppwriteContext', () {
@@ -148,9 +148,7 @@ void main() {
 
     test('masks API key in toMap', () {
       const testEnv = AppwriteEnvironment(
-        environment: {
-          'APPWRITE_FUNCTION_API_KEY': 'secret-key-123',
-        },
+        environment: {'APPWRITE_FUNCTION_API_KEY': 'secret-key-123'},
       );
 
       final map = testEnv.toMap();
@@ -661,10 +659,9 @@ void main() {
       final res = AppwriteResponse.fromContext(mockContext);
       final result = res.html('<h1>Hello</h1>');
       expect(result, '<h1>Hello</h1>');
-      expect(
-        mockContext.res.lastHeaders,
-        {'Content-Type': 'text/html; charset=utf-8'},
-      );
+      expect(mockContext.res.lastHeaders, {
+        'Content-Type': 'text/html; charset=utf-8',
+      });
     });
 
     test('binary sends Uint8List', () {
@@ -681,10 +678,7 @@ void main() {
       final res = AppwriteResponse.fromContext(mockContext);
       final data = Uint8List.fromList([1, 2, 3]);
       res.binary(data, headers: {'Content-Type': 'image/png'});
-      expect(
-        mockContext.res.lastHeaders,
-        {'Content-Type': 'image/png'},
-      );
+      expect(mockContext.res.lastHeaders, {'Content-Type': 'image/png'});
     });
 
     test('redirect sends url and status', () {
@@ -751,11 +745,7 @@ void main() {
         final mockContext = _MockContext();
         final res = AppwriteResponse.fromContext(mockContext);
         final result =
-            res.success(
-                  'Created',
-                  data: {'id': '1'},
-                  statusCode: 201,
-                )
+            res.success('Created', data: {'id': '1'}, statusCode: 201)
                 as Map<String, dynamic>;
         expect(result['data'], {'id': '1'});
         expect(mockContext.res.lastStatusCode, 201);
@@ -776,10 +766,7 @@ void main() {
         final mockContext = _MockContext();
         final res = AppwriteResponse.fromContext(mockContext);
         final result =
-            res.badRequest(
-                  'Validation failed',
-                  details: {'email': 'required'},
-                )
+            res.badRequest('Validation failed', details: {'email': 'required'})
                 as Map<String, dynamic>;
         expect(result['details'], {'email': 'required'});
       });
@@ -847,10 +834,7 @@ void main() {
         final res = AppwriteResponse.fromContext(mockContext);
         final result =
             res.methodNotAllowed(['POST', 'PUT']) as Map<String, dynamic>;
-        expect(
-          result['message'],
-          'This endpoint only supports: POST, PUT',
-        );
+        expect(result['message'], 'This endpoint only supports: POST, PUT');
       });
 
       test('conflict sends 409', () {
@@ -875,10 +859,7 @@ void main() {
         final mockContext = _MockContext();
         final res = AppwriteResponse.fromContext(mockContext);
         final result =
-            res.unprocessableEntity(
-                  'Validation',
-                  errors: {'email': 'invalid'},
-                )
+            res.unprocessableEntity('Validation', errors: {'email': 'invalid'})
                 as Map<String, dynamic>;
         expect(result['errors'], {'email': 'invalid'});
       });
@@ -896,10 +877,7 @@ void main() {
         final mockContext = _MockContext();
         final res = AppwriteResponse.fromContext(mockContext);
         final result =
-            res.internalError(
-                  message: 'DB failed',
-                  data: {'query': 'SELECT *'},
-                )
+            res.internalError(message: 'DB failed', data: {'query': 'SELECT *'})
                 as Map<String, dynamic>;
         expect(result['message'], 'DB failed');
         expect(result['data'], {'query': 'SELECT *'});
@@ -917,10 +895,7 @@ void main() {
         final mockContext = _MockContext();
         final res = AppwriteResponse.fromContext(mockContext);
         final result =
-            res.tooManyRequests(
-                  message: 'Slow down',
-                  retryAfter: 60,
-                )
+            res.tooManyRequests(message: 'Slow down', retryAfter: 60)
                 as Map<String, dynamic>;
         expect(result['retryAfter'], 60);
         expect(result['message'], 'Slow down');
@@ -938,10 +913,7 @@ void main() {
         final mockContext = _MockContext();
         final res = AppwriteResponse.fromContext(mockContext);
         final result =
-            res.serviceUnavailable(
-                  message: 'Maintenance',
-                  retryAfter: 3600,
-                )
+            res.serviceUnavailable(message: 'Maintenance', retryAfter: 3600)
                 as Map<String, dynamic>;
         expect(result['retryAfter'], 3600);
         expect(result['message'], 'Maintenance');

@@ -3,11 +3,11 @@
 
 import 'dart:convert';
 
-import 'package:widgy_appwrite_context/src/models/models.dart'
+import 'package:appwrite_functions_context/src/models/models.dart'
     show AppwriteContext;
-import 'package:widgy_appwrite_context/src/models/widgy_appwrite_context.dart'
+import 'package:appwrite_functions_context/src/models/appwrite_context.dart'
     show AppwriteContext;
-import 'package:widgy_appwrite_context/widgy_appwrite_context.dart'
+import 'package:appwrite_functions_context/appwrite_functions_context.dart'
     show AppwriteContext;
 
 /// {@template appwrite_logger}

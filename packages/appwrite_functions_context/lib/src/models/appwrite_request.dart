@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:widgy_appwrite_context/src/enums/enums.dart';
-import 'package:widgy_appwrite_context/src/mixins/mixins.dart';
-import 'package:widgy_appwrite_context/src/models/appwrite_headers.dart';
+import 'package:appwrite_functions_context/src/enums/enums.dart';
+import 'package:appwrite_functions_context/src/mixins/mixins.dart';
+import 'package:appwrite_functions_context/src/models/appwrite_headers.dart';
 
 /// {@template appwrite_request}
 /// Represents the request object from Appwrite Cloud Functions context.

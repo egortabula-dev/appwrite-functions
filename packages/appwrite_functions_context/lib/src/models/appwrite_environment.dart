@@ -117,9 +117,7 @@ class AppwriteEnvironment {
     return Map<String, String>.fromEntries(
       toMap().entries
           .where((e) => e.value != null)
-          .map(
-            (e) => MapEntry(e.key, e.value!),
-          ),
+          .map((e) => MapEntry(e.key, e.value!)),
     );
   }
 

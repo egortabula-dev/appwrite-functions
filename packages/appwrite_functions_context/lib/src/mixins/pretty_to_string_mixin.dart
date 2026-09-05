@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:widgy_appwrite_context/src/appwrite_logger.dart';
+import 'package:appwrite_functions_context/src/appwrite_logger.dart';
 
 /// {@template pretty_to_string_mixin}
 /// Mixin that provides automatic toString() formatting based on

@@ -1,15 +1,15 @@
-import 'package:widgy_appwrite_context/src/appwrite_logger.dart';
-import 'package:widgy_appwrite_context/src/models/appwrite_environment.dart';
-import 'package:widgy_appwrite_context/src/models/appwrite_request.dart';
-import 'package:widgy_appwrite_context/src/models/appwrite_response.dart';
+import 'package:appwrite_functions_context/src/appwrite_logger.dart';
+import 'package:appwrite_functions_context/src/models/appwrite_environment.dart';
+import 'package:appwrite_functions_context/src/models/appwrite_request.dart';
+import 'package:appwrite_functions_context/src/models/appwrite_response.dart';
 
-/// {@template widgy_appwrite_context}
+/// {@template appwrite_functions_context}
 /// Type-safe wrapper for Appwrite Cloud Functions context.
 /// Provides strongly-typed access to request, response, environment, and
 /// logging.
 /// {@endtemplate}
 class AppwriteContext {
-  /// {@macro widgy_appwrite_context}
+  /// {@macro appwrite_functions_context}
   const AppwriteContext._({
     required this.req,
     required this.res,

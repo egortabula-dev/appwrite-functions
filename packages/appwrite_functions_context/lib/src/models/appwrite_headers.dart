@@ -1,5 +1,5 @@
-import 'package:widgy_appwrite_context/src/enums/enums.dart';
-import 'package:widgy_appwrite_context/src/mixins/mixins.dart';
+import 'package:appwrite_functions_context/src/enums/enums.dart';
+import 'package:appwrite_functions_context/src/mixins/mixins.dart';
 
 /// {@template appwrite_headers}
 /// Type-safe wrapper for Appwrite-specific headers.
@@ -10,9 +10,7 @@ import 'package:widgy_appwrite_context/src/mixins/mixins.dart';
 class AppwriteHeaders with PrettyToStringMixin {
   /// Private constructor that extracts Appwrite headers from the headers map
   AppwriteHeaders._(Map<String, String> headers)
-    : trigger = AppwriteTriggerExtension.parse(
-        headers['x-appwrite-trigger'],
-      ),
+    : trigger = AppwriteTriggerExtension.parse(headers['x-appwrite-trigger']),
       event = headers['x-appwrite-event']?.isEmpty ?? true
           ? null
           : headers['x-appwrite-event'],

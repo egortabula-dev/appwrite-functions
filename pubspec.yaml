@@ -1,33 +1,15 @@
-name: widgy_appwrite_context
-description: Type-safe wrapper for Appwrite Cloud Functions context with strongly-typed request, response, headers, environment variables, and logging.
-version: 0.3.0
-publish_to: https://pub.widgy.io
-homepage: https://widgy.io/packages/widgy_appwrite_context
-repository: https://github.com/Widgyio/packages
+# Root of the appwrite-functions monorepo.
+#
+# A Dart pub workspace: one shared resolution for every package under
+# packages/. There is no melos here on purpose — it would drag the whole
+# workspace floor up to Dart 3.9, while these packages must stay loadable by
+# Appwrite's older runtimes. Versioning and changelogs come from
+# release-please instead, driven by conventional commits.
+name: appwrite_functions_workspace
+publish_to: none
 
-topics:
-  - appwrite
-  - cloud-functions
-  - serverless
-  - easy-flutter
-
-# Floor is 3.8 because the code uses null-aware elements, a 3.8 language
-# feature — and because Appwrite ships no Dart runtime above 3.8 (1.9.6 knows
-# 3.0, 3.1, 3.3, 3.5, 3.8). A wrapper for Appwrite Functions that no Appwrite
-# Functions runtime can load is a wrapper for nothing, so the floor follows the
-# newest runtime, not the newest SDK. Pub workspaces forbid a floor below 3.6,
-# so 3.8 sits comfortably inside (ADR-001, ADR-005). very_good_analysis 10 needs
-# 3.9, but it is a dev dependency: consumers never resolve it (ADR-002).
 environment:
   sdk: ^3.8.0
 
-# Member of the root pub workspace (ADR-001).
-resolution: workspace
-
-dev_dependencies:
-  mocktail: ^1.0.4
-  # Lowered from ^1.26.3 to ^1.24.0 to co-resolve with flutter_test's SDK-pinned
-  # test_api in the shared workspace on the min matrix point (Flutter 3.35 pins
-  # test_api 0.7.6; test >=1.26.3 needs >=0.7.7). Matches the rest of the workspace.
-  test: ^1.24.0
-  very_good_analysis: ^10.0.0
+workspace:
+  - packages/appwrite_functions_context
