@@ -20,12 +20,12 @@ class AppwriteLogger {
   AppwriteLogger(this._context);
 
   /// Initialize the logger with the Appwrite context and make it the
-  /// process-wide fallback used by [awLog] and [awLogError] outside of
+  /// process-wide fallback used by `awLog` and `awLogError` outside of
   /// [AppwriteContext.handle].
   ///
   /// The open-runtimes Dart server runs concurrent requests in one isolate,
   /// and every call replaces the fallback. A request that is still running
-  /// when another one starts will send its later [awLog] lines to the other
+  /// when another one starts will send its later `awLog` lines to the other
   /// request, or lose them if that request has already finished.
   @Deprecated(
     'Unsafe under concurrent requests. '
@@ -102,12 +102,9 @@ AppwriteLogger? get _currentLogger => zoneLogger ?? AppwriteLogger._instance;
 /// deprecated `AppwriteContext.initialize`, which is not safe when the
 /// runtime serves concurrent requests, and does nothing without one.
 ///
-/// Examples:
-/// ```dart
-/// awLog('Simple message');
-/// awLog('Query:', ctx.req.query);  // Auto pretty-print
-/// awLog(ctx.req.query);            // Also pretty-printed
-/// ```
+/// Replace with [AppwriteContext.log], and hand `ctx.logger` to services
+/// that log.
+@Deprecated('Use ctx.log, and pass ctx.logger to services that need to log.')
 void awLog(Object? message, [Object? data]) {
   _currentLogger?.log(message, data);
 }
@@ -119,16 +116,13 @@ void awLog(Object? message, [Object? data]) {
 /// - Two arguments: `awLogError('label:', error)` - logs label and error
 ///   separately with automatic pretty-printing for Maps/Lists
 ///
-/// Picks the target execution the same way as [awLog]: the request of the
+/// Picks the target execution the same way as `awLog`: the request of the
 /// enclosing [AppwriteContext.handle] if there is one, otherwise the
 /// deprecated global fallback.
 ///
-/// Examples:
-/// ```dart
-/// awLogError('Error occurred');
-/// awLogError('Request failed:', ctx.req.query);
-/// awLogError(exception);
-/// ```
+/// Replace with [AppwriteContext.error], and hand `ctx.logger` to services
+/// that log.
+@Deprecated('Use ctx.error, and pass ctx.logger to services that need to log.')
 void awLogError(Object? message, [Object? data]) {
   _currentLogger?.error(message, data);
 }
