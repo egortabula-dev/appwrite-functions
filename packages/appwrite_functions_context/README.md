@@ -38,8 +38,8 @@ typed pieces:
 - `AppwriteHeaders` — the `x-appwrite-*` headers by name, not by string key
 - `AppwriteResponse` — response builders, including the common HTTP statuses
 - `AppwriteEnvironment` — the `APPWRITE_*` variables the runtime injects
-- `awLog` / `awLogError` — logging that survives being called before the
-  context exists
+- `awLog` / `awLogError` and `ctx.log` / `ctx.error` — logging that stays
+  with its own execution when requests run concurrently
 
 It adds no dependencies. It is loaded by every function you write, so it has
 no right to bring anything with it.
@@ -62,23 +62,26 @@ Requires Dart 3.8 or newer, which covers every Appwrite runtime from
 ```dart
 import 'package:appwrite_functions_context/appwrite_functions_context.dart';
 
-Future<dynamic> main(dynamic context) async {
-  final ctx = AppwriteContext.initialize(context);
+Future<dynamic> main(dynamic context) =>
+    AppwriteContext.handle(context, (ctx) async {
+      if (ctx.req.method != HttpMethod.post) {
+        return ctx.res.methodNotAllowed(['POST']);
+      }
 
-  if (ctx.req.method != HttpMethod.post) {
-    return ctx.res.methodNotAllowed(['POST']);
-  }
+      final accountId = ctx.req.bodyJson['accountId'];
+      if (accountId is! String || accountId.isEmpty) {
+        return ctx.res.badRequest('accountId is required');
+      }
 
-  final accountId = ctx.req.bodyJson['accountId'];
-  if (accountId is! String || accountId.isEmpty) {
-    return ctx.res.badRequest('accountId is required');
-  }
+      awLog('Deleting account $accountId');
 
-  awLog('Deleting account $accountId');
-
-  return ctx.res.ok({'deleted': accountId});
-}
+      return ctx.res.ok({'deleted': accountId});
+    });
 ```
+
+`AppwriteContext.initialize(context)` still works but is deprecated: it
+routes `awLog` through a process-wide logger, which mixes up executions
+that run at the same time. See [Logging](#logging).
 
 ## Request
 
@@ -182,8 +185,18 @@ awLogError('Could not clear tokens', error);
 ```
 
 Both accept an optional second argument, pretty-printed next to the message.
-They work whether or not the context has been initialized, so a failure
-during startup still leaves a trace.
+Called inside `AppwriteContext.handle`, they write to that handler's
+execution, however deep in services and repositories and after any number of
+awaits. Called with no execution around them, they do nothing.
+
+`ctx.log` and `ctx.error` take the same arguments, for the places where
+`ctx` is already at hand.
+
+This matters because the Dart runtime serves several executions in one
+process at once: an event, a scheduled run and an HTTP call can all be in
+flight together. The deprecated `AppwriteContext.initialize` keeps a single
+process-wide logger, so a long run that shares a container with a cron
+trigger sends the rest of its log into the cron execution, or loses it.
 
 ## Testing
 

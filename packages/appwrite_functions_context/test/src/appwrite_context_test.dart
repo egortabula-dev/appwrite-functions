@@ -8,61 +8,74 @@ import 'package:appwrite_functions_context/appwrite_functions_context.dart';
 
 void main() {
   group('AppwriteContext', () {
-    test('can be initialized with dynamic context', () {
-      final mockContext = _MockContext();
-      final context = AppwriteContext.initialize(mockContext);
+    test('handle wraps the dynamic context', () async {
+      final ctx = await AppwriteContext.handle(_MockContext(), (ctx) => ctx);
 
-      expect(context, isNotNull);
-      expect(context.req, isNotNull);
-      expect(context.res, isNotNull);
+      expect(ctx.req.host, 'example.com');
+      expect(ctx.res, isNotNull);
     });
 
-    test('initializes logger on initialization', () {
-      final mockContext = _MockContext();
-      AppwriteContext.initialize(mockContext);
+    test('handle returns the handler result and propagates errors', () async {
+      expect(await AppwriteContext.handle(_MockContext(), (ctx) => 42), 42);
+      await expectLater(
+        AppwriteContext.handle<void>(
+          _MockContext(),
+          (ctx) => throw StateError('boom'),
+        ),
+        throwsStateError,
+      );
+    });
 
-      // Test that logger methods don't throw
-      expect(() => awLog('test'), returnsNormally);
-      expect(() => awLogError('test error'), returnsNormally);
+    test('handle does not touch the global fallback', () async {
+      final raw = _MockContext();
+      await AppwriteContext.handle(raw, (ctx) {});
+
+      awLog('outside');
+      awLogError('outside');
+
+      expect(raw.logMessages, isEmpty);
+      expect(raw.errorMessages, isEmpty);
     });
   });
 
   group('AppwriteLogger', () {
     test('can log messages', () {
       final mockContext = _MockContext();
-      final logger = AppwriteLogger.initialize(mockContext);
-
-      expect(() => logger.log('test message'), returnsNormally);
-      expect(mockContext.logMessages, contains('test message'));
+      AppwriteLogger(mockContext).log('test message');
+      expect(mockContext.logMessages, ['test message']);
     });
 
     test('can log errors', () {
       final mockContext = _MockContext();
-      final logger = AppwriteLogger.initialize(mockContext);
+      AppwriteLogger(mockContext).error('test error');
+      expect(mockContext.errorMessages, ['test error']);
+    });
 
-      expect(() => logger.error('test error'), returnsNormally);
-      expect(mockContext.errorMessages, contains('test error'));
+    test('logs label and data separately', () {
+      final mockContext = _MockContext();
+      AppwriteLogger(mockContext)
+        ..log('label:', 'data')
+        ..error('label:', 'error-data');
+      expect(mockContext.logMessages, ['label:', 'data']);
+      expect(mockContext.errorMessages, ['label:', 'error-data']);
     });
 
     test('formats null message as empty string', () {
       final mockContext = _MockContext();
-      final logger = AppwriteLogger.initialize(mockContext);
-      logger.log(null);
-      expect(mockContext.logMessages, contains(''));
+      AppwriteLogger(mockContext).log(null);
+      expect(mockContext.logMessages, ['']);
     });
 
     test('formats non-string message using toString', () {
       final mockContext = _MockContext();
-      final logger = AppwriteLogger.initialize(mockContext);
-      logger.log(42);
-      expect(mockContext.logMessages, contains('42'));
+      AppwriteLogger(mockContext).log(42);
+      expect(mockContext.logMessages, ['42']);
     });
 
     test('pretty prints maps when prettyPrint is enabled', () {
       AppwriteLogger.prettyPrint = true;
       final mockContext = _MockContext();
-      final logger = AppwriteLogger.initialize(mockContext);
-      logger.log({'key': 'value'});
+      AppwriteLogger(mockContext).log({'key': 'value'});
       expect(mockContext.logMessages.last, contains('"key"'));
       expect(mockContext.logMessages.last, contains('"value"'));
     });
@@ -70,44 +83,181 @@ void main() {
     test('compact format when prettyPrint is disabled', () {
       AppwriteLogger.prettyPrint = false;
       final mockContext = _MockContext();
-      final logger = AppwriteLogger.initialize(mockContext);
-      logger.log({'key': 'value'});
+      AppwriteLogger(mockContext).log({'key': 'value'});
       expect(mockContext.logMessages.last, contains('key'));
       AppwriteLogger.prettyPrint = true; // Reset
+    });
+
+    test('ignores a null context', () {
+      expect(() => AppwriteLogger(null).log('x', 'y'), returnsNormally);
     });
   });
 
   group('awLog', () {
-    test('logs single message', () {
+    test('logs single message', () async {
       final mockContext = _MockContext();
-      AppwriteLogger.initialize(mockContext);
-      awLog('hello');
-      expect(mockContext.logMessages, contains('hello'));
+      await AppwriteContext.handle(mockContext, (ctx) => awLog('hello'));
+      expect(mockContext.logMessages, ['hello']);
     });
 
-    test('logs label and data separately', () {
+    test('logs label and data separately', () async {
       final mockContext = _MockContext();
-      AppwriteLogger.initialize(mockContext);
-      awLog('label:', 'data');
-      expect(mockContext.logMessages, contains('label:'));
-      expect(mockContext.logMessages, contains('data'));
+      await AppwriteContext.handle(
+        mockContext,
+        (ctx) => awLog('label:', 'data'),
+      );
+      expect(mockContext.logMessages, ['label:', 'data']);
     });
   });
 
   group('awLogError', () {
-    test('logs single error', () {
+    test('logs single error', () async {
       final mockContext = _MockContext();
-      AppwriteLogger.initialize(mockContext);
-      awLogError('fail');
-      expect(mockContext.errorMessages, contains('fail'));
+      await AppwriteContext.handle(mockContext, (ctx) => awLogError('fail'));
+      expect(mockContext.errorMessages, ['fail']);
     });
 
-    test('logs label and data separately', () {
+    test('logs label and data separately', () async {
       final mockContext = _MockContext();
+      await AppwriteContext.handle(
+        mockContext,
+        (ctx) => awLogError('label:', 'error-data'),
+      );
+      expect(mockContext.errorMessages, ['label:', 'error-data']);
+    });
+  });
+
+  group('concurrent requests', () {
+    test('awLog inside handle stays with its own request', () async {
+      final first = _MockContext();
+      final second = _MockContext();
+
+      await Future.wait([
+        AppwriteContext.handle(first, (ctx) async {
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+          awLog('a');
+          awLogError('a-error');
+        }),
+        AppwriteContext.handle(second, (ctx) async {
+          awLog('b');
+          awLogError('b-error');
+        }),
+      ]);
+
+      expect(first.logMessages, ['a']);
+      expect(first.errorMessages, ['a-error']);
+      expect(second.logMessages, ['b']);
+      expect(second.errorMessages, ['b-error']);
+    });
+
+    test('ctx.log stays with its own request without a zone', () async {
+      final first = _MockContext();
+      final second = _MockContext();
+      final firstCtx = await AppwriteContext.handle(first, (ctx) => ctx);
+      final secondCtx = await AppwriteContext.handle(second, (ctx) => ctx);
+
+      Future<void> run(AppwriteContext ctx, String line, Duration delay) async {
+        await Future<void>.delayed(delay);
+        ctx.log(line);
+        ctx.error('$line-error');
+      }
+
+      await Future.wait([
+        run(firstCtx, 'a', const Duration(milliseconds: 20)),
+        run(secondCtx, 'b', Duration.zero),
+      ]);
+
+      expect(first.logMessages, ['a']);
+      expect(first.errorMessages, ['a-error']);
+      expect(second.logMessages, ['b']);
+      expect(second.errorMessages, ['b-error']);
+    });
+
+    test('ctx.log and awLog format two arguments identically', () async {
+      final viaCtx = _MockContext();
+      final viaAwLog = _MockContext();
+      const data = {
+        'key': 'value',
+        'list': [1, 2],
+      };
+
+      await AppwriteContext.handle(viaCtx, (ctx) {
+        ctx
+          ..log('label:', data)
+          ..error('label:', data);
+      });
+      await AppwriteContext.handle(viaAwLog, (ctx) {
+        awLog('label:', data);
+        awLogError('label:', data);
+      });
+
+      expect(viaCtx.logMessages, hasLength(2));
+      expect(viaCtx.logMessages.first, 'label:');
+      expect(viaCtx.logMessages.last, contains('\n  "key": "value"'));
+      expect(viaAwLog.logMessages, viaCtx.logMessages);
+      expect(viaCtx.errorMessages, viaCtx.logMessages);
+      expect(viaAwLog.errorMessages, viaCtx.errorMessages);
+    });
+  });
+
+  group('deprecated global fallback', () {
+    test('AppwriteContext.initialize wraps the dynamic context', () {
+      // ignore: deprecated_member_use_from_same_package
+      final ctx = AppwriteContext.initialize(_MockContext());
+      expect(ctx.req.host, 'example.com');
+    });
+
+    test('awLog writes to the last initialized context', () {
+      final first = _MockContext();
+      final second = _MockContext();
+
+      // ignore: deprecated_member_use_from_same_package
+      AppwriteContext.initialize(first);
+      // ignore: deprecated_member_use_from_same_package
+      AppwriteContext.initialize(second);
+      awLog('line');
+      awLogError('error');
+
+      expect(first.logMessages, isEmpty);
+      expect(first.errorMessages, isEmpty);
+      expect(second.logMessages, ['line']);
+      expect(second.errorMessages, ['error']);
+    });
+
+    test('AppwriteLogger.initialize sets the fallback', () {
+      final mockContext = _MockContext();
+      // ignore: deprecated_member_use_from_same_package
       AppwriteLogger.initialize(mockContext);
-      awLogError('label:', 'error-data');
-      expect(mockContext.errorMessages, contains('label:'));
-      expect(mockContext.errorMessages, contains('error-data'));
+      awLog('label:', 'data');
+      awLogError('fail');
+      expect(mockContext.logMessages, ['label:', 'data']);
+      expect(mockContext.errorMessages, ['fail']);
+    });
+
+    test('ctx.log from initialize stays with its own request', () {
+      final first = _MockContext();
+      final second = _MockContext();
+
+      // ignore: deprecated_member_use_from_same_package
+      final firstCtx = AppwriteContext.initialize(first);
+      // ignore: deprecated_member_use_from_same_package
+      AppwriteContext.initialize(second);
+      firstCtx.log('a');
+
+      expect(first.logMessages, ['a']);
+      expect(second.logMessages, isEmpty);
+    });
+
+    test('handle wins over the fallback', () async {
+      final global = _MockContext();
+      final scoped = _MockContext();
+
+      // ignore: deprecated_member_use_from_same_package
+      AppwriteContext.initialize(global);
+      await AppwriteContext.handle(scoped, (ctx) => awLog('scoped'));
+
+      expect(scoped.logMessages, ['scoped']);
+      expect(global.logMessages, isEmpty);
     });
   });
 

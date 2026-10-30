@@ -3,11 +3,8 @@
 
 import 'dart:convert';
 
-import 'package:appwrite_functions_context/src/models/models.dart'
-    show AppwriteContext;
+import 'package:appwrite_functions_context/src/logger_zone.dart';
 import 'package:appwrite_functions_context/src/models/appwrite_context.dart'
-    show AppwriteContext;
-import 'package:appwrite_functions_context/appwrite_functions_context.dart'
     show AppwriteContext;
 
 /// {@template appwrite_logger}
@@ -16,13 +13,28 @@ import 'package:appwrite_functions_context/appwrite_functions_context.dart'
 /// to the Appwrite Console.
 /// {@endtemplate}
 class AppwriteLogger {
-  /// Initialize the logger with the Appwrite context.
-  /// This is called automatically by [AppwriteContext.initialize].
+  /// Creates a logger bound to one raw Appwrite [context].
+  ///
+  /// The logger writes only to that context and touches no global state, so
+  /// it is safe when the runtime serves several requests at once.
+  AppwriteLogger(this._context);
+
+  /// Initialize the logger with the Appwrite context and make it the
+  /// process-wide fallback used by [awLog] and [awLogError] outside of
+  /// [AppwriteContext.handle].
+  ///
+  /// The open-runtimes Dart server runs concurrent requests in one isolate,
+  /// and every call replaces the fallback. A request that is still running
+  /// when another one starts will send its later [awLog] lines to the other
+  /// request, or lose them if that request has already finished.
+  @Deprecated(
+    'Unsafe under concurrent requests. '
+    'Use AppwriteContext.handle, or AppwriteLogger(context) for a logger '
+    'bound to one context.',
+  )
   factory AppwriteLogger.initialize(dynamic context) {
-    _instance = AppwriteLogger._(context);
-    return _instance!;
+    return _instance = AppwriteLogger(context);
   }
-  AppwriteLogger._(this._context);
 
   static AppwriteLogger? _instance;
 
@@ -36,15 +48,23 @@ class AppwriteLogger {
   /// Logs a message to Appwrite Console.
   /// Messages logged here are visible in the Appwrite Console
   /// but not to end users.
-  void log(Object? message) {
+  ///
+  /// With [data], logs [message] and then [data] as a separate line,
+  /// pretty-printing Maps and Lists.
+  void log(Object? message, [Object? data]) {
     _context?.log(_formatMessage(message));
+    if (data != null) _context?.log(_formatMessage(data));
   }
 
   /// Logs an error to Appwrite Console.
   /// Errors logged here are visible in the Appwrite Console
   /// but not to end users.
-  void error(Object? message) {
+  ///
+  /// With [data], logs [message] and then [data] as a separate line,
+  /// pretty-printing Maps and Lists.
+  void error(Object? message, [Object? data]) {
     _context?.error(_formatMessage(message));
+    if (data != null) _context?.error(_formatMessage(data));
   }
 
   /// Formats message for logging, applying pretty print if enabled
@@ -68,12 +88,19 @@ class AppwriteLogger {
   }
 }
 
+AppwriteLogger? get _currentLogger => zoneLogger ?? AppwriteLogger._instance;
+
 /// Top-level convenience function for logging messages.
 ///
 /// Can be used in two modes:
 /// - Single argument: `awLog(message)` - logs the message as-is
 /// - Two arguments: `awLog('label:', data)` - logs label and data separately
 ///   with automatic pretty-printing for Maps/Lists
+///
+/// Inside [AppwriteContext.handle] it writes to that request's execution.
+/// Outside of it, it falls back to the context most recently passed to the
+/// deprecated `AppwriteContext.initialize`, which is not safe when the
+/// runtime serves concurrent requests, and does nothing without one.
 ///
 /// Examples:
 /// ```dart
@@ -82,14 +109,7 @@ class AppwriteLogger {
 /// awLog(ctx.req.query);            // Also pretty-printed
 /// ```
 void awLog(Object? message, [Object? data]) {
-  if (data != null) {
-    // Two arguments mode: log label and data separately
-    AppwriteLogger._instance?.log(message);
-    AppwriteLogger._instance?.log(data);
-  } else {
-    // Single argument mode: log as-is
-    AppwriteLogger._instance?.log(message);
-  }
+  _currentLogger?.log(message, data);
 }
 
 /// Top-level convenience function for logging errors.
@@ -99,6 +119,10 @@ void awLog(Object? message, [Object? data]) {
 /// - Two arguments: `awLogError('label:', error)` - logs label and error
 ///   separately with automatic pretty-printing for Maps/Lists
 ///
+/// Picks the target execution the same way as [awLog]: the request of the
+/// enclosing [AppwriteContext.handle] if there is one, otherwise the
+/// deprecated global fallback.
+///
 /// Examples:
 /// ```dart
 /// awLogError('Error occurred');
@@ -106,12 +130,5 @@ void awLog(Object? message, [Object? data]) {
 /// awLogError(exception);
 /// ```
 void awLogError(Object? message, [Object? data]) {
-  if (data != null) {
-    // Two arguments mode: log label and data separately
-    AppwriteLogger._instance?.error(message);
-    AppwriteLogger._instance?.error(data);
-  } else {
-    // Single argument mode: log as-is
-    AppwriteLogger._instance?.error(message);
-  }
+  _currentLogger?.error(message, data);
 }
