@@ -1,0 +1,24 @@
+# Categories for GitHub's generated release notes, which release-please
+# copies into the release and CHANGELOG.md. Labels are set from the PR title
+# by .github/workflows/pr-title.yml.
+changelog:
+  exclude:
+    labels:
+      - "autorelease: pending"
+      - "autorelease: tagged"
+      - skip-changelog
+  categories:
+    - title: ⚠️ Breaking changes
+      labels: [breaking]
+    - title: ✨ Features
+      labels: [feature]
+    - title: 🐛 Fixes
+      labels: [fix]
+    - title: ⚡ Performance
+      labels: [performance]
+    - title: 📝 Documentation
+      labels: [documentation]
+    - title: 🧹 Maintenance
+      labels: [maintenance]
+    - title: Other changes
+      labels: ["*"]
