@@ -45,21 +45,24 @@ class AppwriteContext {
     return AppwriteContext._fromRaw(context, logger);
   }
 
-  /// Wraps the raw Appwrite [context] and runs [handler] in a zone bound to
-  /// it.
+  /// Wraps the raw Appwrite [context] and runs [handler] with it.
   ///
-  /// Every [awLog] and [awLogError] made while [handler] runs, however deep
-  /// in the call stack and after any number of awaits, goes to this request's
-  /// execution, even when the runtime serves other requests at the same time.
-  /// No global state is touched.
+  /// Log through `ctx.log` and `ctx.error`, and pass `ctx.logger` to the
+  /// services that log, so every line lands in this request's execution
+  /// even when the runtime serves other requests at the same time.
   ///
   /// ```dart
   /// Future<dynamic> main(dynamic context) =>
   ///     AppwriteContext.handle(context, (ctx) async {
-  ///       awLog('Processing');
+  ///       ctx.log('Processing');
+  ///       await AccountService(ctx.logger).purge();
   ///       return ctx.res.ok({'done': true});
   ///     });
   /// ```
+  ///
+  /// The handler runs in a zone bound to this request, so the deprecated
+  /// [awLog] and [awLogError] stay safe inside it while code migrates.
+  /// No global state is touched.
   static Future<T> handle<T>(
     dynamic context,
     FutureOr<T> Function(AppwriteContext ctx) handler,
@@ -83,9 +86,15 @@ class AppwriteContext {
   /// Logger bound to this request's execution.
   final AppwriteLogger logger;
 
-  /// Logs a message to this request's execution, same as [awLog].
+  /// Logs a message to this request's execution.
+  ///
+  /// With [data], logs [message] and then [data] as a separate line,
+  /// pretty-printing Maps and Lists.
   void log(Object? message, [Object? data]) => logger.log(message, data);
 
-  /// Logs an error to this request's execution, same as [awLogError].
+  /// Logs an error to this request's execution.
+  ///
+  /// With [data], logs [message] and then [data] as a separate line,
+  /// pretty-printing Maps and Lists.
   void error(Object? message, [Object? data]) => logger.error(message, data);
 }

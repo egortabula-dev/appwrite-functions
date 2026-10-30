@@ -102,12 +102,9 @@ AppwriteLogger? get _currentLogger => zoneLogger ?? AppwriteLogger._instance;
 /// deprecated `AppwriteContext.initialize`, which is not safe when the
 /// runtime serves concurrent requests, and does nothing without one.
 ///
-/// Examples:
-/// ```dart
-/// awLog('Simple message');
-/// awLog('Query:', ctx.req.query);  // Auto pretty-print
-/// awLog(ctx.req.query);            // Also pretty-printed
-/// ```
+/// Replace with [AppwriteContext.log], and hand `ctx.logger` to services
+/// that log.
+@Deprecated('Use ctx.log, and pass ctx.logger to services that need to log.')
 void awLog(Object? message, [Object? data]) {
   _currentLogger?.log(message, data);
 }
@@ -123,12 +120,9 @@ void awLog(Object? message, [Object? data]) {
 /// enclosing [AppwriteContext.handle] if there is one, otherwise the
 /// deprecated global fallback.
 ///
-/// Examples:
-/// ```dart
-/// awLogError('Error occurred');
-/// awLogError('Request failed:', ctx.req.query);
-/// awLogError(exception);
-/// ```
+/// Replace with [AppwriteContext.error], and hand `ctx.logger` to services
+/// that log.
+@Deprecated('Use ctx.error, and pass ctx.logger to services that need to log.')
 void awLogError(Object? message, [Object? data]) {
   _currentLogger?.error(message, data);
 }

@@ -1,4 +1,5 @@
-// Not required for test files
+// The deprecated logging API is tested on purpose.
+// ignore_for_file: deprecated_member_use_from_same_package
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
@@ -93,7 +94,7 @@ void main() {
     });
   });
 
-  group('awLog', () {
+  group('awLog (deprecated)', () {
     test('logs single message', () async {
       final mockContext = _MockContext();
       await AppwriteContext.handle(mockContext, (ctx) => awLog('hello'));
@@ -110,7 +111,7 @@ void main() {
     });
   });
 
-  group('awLogError', () {
+  group('awLogError (deprecated)', () {
     test('logs single error', () async {
       final mockContext = _MockContext();
       await AppwriteContext.handle(mockContext, (ctx) => awLogError('fail'));
@@ -202,7 +203,6 @@ void main() {
 
   group('deprecated global fallback', () {
     test('AppwriteContext.initialize wraps the dynamic context', () {
-      // ignore: deprecated_member_use_from_same_package
       final ctx = AppwriteContext.initialize(_MockContext());
       expect(ctx.req.host, 'example.com');
     });
@@ -211,9 +211,7 @@ void main() {
       final first = _MockContext();
       final second = _MockContext();
 
-      // ignore: deprecated_member_use_from_same_package
       AppwriteContext.initialize(first);
-      // ignore: deprecated_member_use_from_same_package
       AppwriteContext.initialize(second);
       awLog('line');
       awLogError('error');
@@ -226,7 +224,6 @@ void main() {
 
     test('AppwriteLogger.initialize sets the fallback', () {
       final mockContext = _MockContext();
-      // ignore: deprecated_member_use_from_same_package
       AppwriteLogger.initialize(mockContext);
       awLog('label:', 'data');
       awLogError('fail');
@@ -238,9 +235,7 @@ void main() {
       final first = _MockContext();
       final second = _MockContext();
 
-      // ignore: deprecated_member_use_from_same_package
       final firstCtx = AppwriteContext.initialize(first);
-      // ignore: deprecated_member_use_from_same_package
       AppwriteContext.initialize(second);
       firstCtx.log('a');
 
@@ -252,7 +247,6 @@ void main() {
       final global = _MockContext();
       final scoped = _MockContext();
 
-      // ignore: deprecated_member_use_from_same_package
       AppwriteContext.initialize(global);
       await AppwriteContext.handle(scoped, (ctx) => awLog('scoped'));
 

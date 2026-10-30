@@ -38,8 +38,8 @@ typed pieces:
 - `AppwriteHeaders` — the `x-appwrite-*` headers by name, not by string key
 - `AppwriteResponse` — response builders, including the common HTTP statuses
 - `AppwriteEnvironment` — the `APPWRITE_*` variables the runtime injects
-- `awLog` / `awLogError` and `ctx.log` / `ctx.error` — logging that stays
-  with its own execution when requests run concurrently
+- `ctx.log` / `ctx.error` — logging that stays with its own execution when
+  requests run concurrently
 
 It adds no dependencies. It is loaded by every function you write, so it has
 no right to bring anything with it.
@@ -73,14 +73,14 @@ Future<dynamic> main(dynamic context) =>
         return ctx.res.badRequest('accountId is required');
       }
 
-      awLog('Deleting account $accountId');
+      ctx.log('Deleting account $accountId');
 
       return ctx.res.ok({'deleted': accountId});
     });
 ```
 
 `AppwriteContext.initialize(context)` still works but is deprecated: it
-routes `awLog` through a process-wide logger, which mixes up executions
+routes logging through a process-wide logger, which mixes up executions
 that run at the same time. See [Logging](#logging).
 
 ## Request
@@ -180,23 +180,38 @@ deleted. If your deletions silently do nothing, look here first.
 ## Logging
 
 ```dart
-awLog('Processing', {'accountId': accountId});
-awLogError('Could not clear tokens', error);
+ctx.log('Processing', {'accountId': accountId});
+ctx.error('Could not clear tokens', error);
 ```
 
 Both accept an optional second argument, pretty-printed next to the message.
-Called inside `AppwriteContext.handle`, they write to that handler's
-execution, however deep in services and repositories and after any number of
-awaits. Called with no execution around them, they do nothing.
 
-`ctx.log` and `ctx.error` take the same arguments, for the places where
-`ctx` is already at hand.
+Services and repositories that log take an `AppwriteLogger`, and the handler
+hands them `ctx.logger`:
 
-This matters because the Dart runtime serves several executions in one
-process at once: an event, a scheduled run and an HTTP call can all be in
-flight together. The deprecated `AppwriteContext.initialize` keeps a single
-process-wide logger, so a long run that shares a container with a cron
-trigger sends the rest of its log into the cron execution, or loses it.
+```dart
+class AccountService {
+  AccountService(this._logger);
+
+  final AppwriteLogger _logger;
+
+  Future<void> purge(String accountId) async {
+    _logger.log('Purging', {'accountId': accountId});
+  }
+}
+
+// In the handler:
+await AccountService(ctx.logger).purge(accountId);
+```
+
+A logger is bound to one execution, which matters because the Dart runtime
+serves several executions in one process at once: an event, a scheduled run
+and an HTTP call can all be in flight together. The deprecated `awLog`,
+`awLogError` and `AppwriteContext.initialize` share a single process-wide
+logger, so a long run that shares a container with a cron trigger sends the
+rest of its log into the cron execution, or loses it. Inside
+`AppwriteContext.handle` they stay bound to their execution, which is enough
+to migrate step by step.
 
 ## Testing
 
