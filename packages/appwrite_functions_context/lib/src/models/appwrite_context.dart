@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:appwrite_functions_context/src/appwrite_logger.dart';
+import 'package:appwrite_functions_context/src/logger_zone.dart';
 import 'package:appwrite_functions_context/src/models/appwrite_environment.dart';
 import 'package:appwrite_functions_context/src/models/appwrite_request.dart';
 import 'package:appwrite_functions_context/src/models/appwrite_response.dart';
@@ -14,18 +17,57 @@ class AppwriteContext {
     required this.req,
     required this.res,
     required this.env,
+    required this.logger,
   });
+
+  AppwriteContext._fromRaw(dynamic context, AppwriteLogger logger)
+    : this._(
+        req: AppwriteRequest.fromContext(context),
+        res: AppwriteResponse.fromContext(context),
+        env: const AppwriteEnvironment(),
+        logger: logger,
+      );
 
   /// Factory method to initialize AppwriteContext from dynamic context
   /// received in Appwrite Cloud Functions.
+  ///
+  /// Also makes this context the process-wide fallback for [awLog] and
+  /// [awLogError]. The runtime serves concurrent requests in one process, so
+  /// with that fallback a long execution's lines end up in a later one, or
+  /// are lost. [handle] has no such fallback.
+  @Deprecated(
+    'Unsafe under concurrent requests. '
+    'Use AppwriteContext.handle(context, (ctx) async { ... }) instead.',
+  )
   factory AppwriteContext.initialize(dynamic context) {
-    // Initialize logger with context
-    AppwriteLogger.initialize(context);
+    // ignore: deprecated_member_use_from_same_package
+    final logger = AppwriteLogger.initialize(context);
+    return AppwriteContext._fromRaw(context, logger);
+  }
 
-    return AppwriteContext._(
-      req: AppwriteRequest.fromContext(context),
-      res: AppwriteResponse.fromContext(context),
-      env: const AppwriteEnvironment(),
+  /// Wraps the raw Appwrite [context] and runs [handler] in a zone bound to
+  /// it.
+  ///
+  /// Every [awLog] and [awLogError] made while [handler] runs, however deep
+  /// in the call stack and after any number of awaits, goes to this request's
+  /// execution, even when the runtime serves other requests at the same time.
+  /// No global state is touched.
+  ///
+  /// ```dart
+  /// Future<dynamic> main(dynamic context) =>
+  ///     AppwriteContext.handle(context, (ctx) async {
+  ///       awLog('Processing');
+  ///       return ctx.res.ok({'done': true});
+  ///     });
+  /// ```
+  static Future<T> handle<T>(
+    dynamic context,
+    FutureOr<T> Function(AppwriteContext ctx) handler,
+  ) {
+    final ctx = AppwriteContext._fromRaw(context, AppwriteLogger(context));
+    return runZoned(
+      () async => handler(ctx),
+      zoneValues: {loggerZoneKey: ctx.logger},
     );
   }
 
@@ -37,4 +79,13 @@ class AppwriteContext {
 
   /// Environment variables accessor for Appwrite Functions
   final AppwriteEnvironment env;
+
+  /// Logger bound to this request's execution.
+  final AppwriteLogger logger;
+
+  /// Logs a message to this request's execution, same as [awLog].
+  void log(Object? message, [Object? data]) => logger.log(message, data);
+
+  /// Logs an error to this request's execution, same as [awLogError].
+  void error(Object? message, [Object? data]) => logger.error(message, data);
 }
