@@ -1,8 +1,8 @@
 name: pr-title
 
 # Squash merges turn the PR title into the commit release-please reads, so the
-# title must be a conventional commit. The job also labels the PR by its type,
-# which is how the release notes are grouped.
+# title must be a conventional commit, in English. The job also labels the PR
+# by its type, which is how the release notes are grouped.
 on:
   pull_request_target:
     types: [opened, edited, reopened, synchronize]
@@ -37,6 +37,13 @@ jobs:
                 `PR title "${pr.title}" is not a conventional commit, e.g. ` +
                   '"feat(appwrite_functions_context): ..." or "fix: ...". ' +
                   `Allowed types: ${Object.keys(labelByType).join(', ')}.`,
+              );
+              return;
+            }
+            if (/[А-Яа-яЁё]/.test(pr.title)) {
+              core.setFailed(
+                `PR title "${pr.title}" must be in English: it becomes the ` +
+                  'commit and the line in the release notes.',
               );
               return;
             }
