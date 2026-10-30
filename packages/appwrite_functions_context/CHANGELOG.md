@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.0 (2026-10-30)
+
+<!-- Release notes generated using configuration in .github/release.yml at main -->
+
+## What's Changed
+### ✨ Features
+* feat(appwrite_functions_context): deprecate awLog and awLogError in favour of ctx.log by @egortabula in https://github.com/egortabula-dev/appwrite-functions/pull/4
+### 🧹 Maintenance
+* ci: point links to egortabula-dev and add the CI workflow by @egortabula in https://github.com/egortabula-dev/appwrite-functions/pull/5
+
+
+**Full Changelog**: https://github.com/egortabula-dev/appwrite-functions/compare/v0.4.0...v0.5.0
+
 ## 0.4.0 (2026-10-30)
 
 <!-- Release notes generated using configuration in .github/release.yml at main -->
