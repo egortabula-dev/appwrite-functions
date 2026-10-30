@@ -20,12 +20,12 @@ class AppwriteLogger {
   AppwriteLogger(this._context);
 
   /// Initialize the logger with the Appwrite context and make it the
-  /// process-wide fallback used by [awLog] and [awLogError] outside of
+  /// process-wide fallback used by `awLog` and `awLogError` outside of
   /// [AppwriteContext.handle].
   ///
   /// The open-runtimes Dart server runs concurrent requests in one isolate,
   /// and every call replaces the fallback. A request that is still running
-  /// when another one starts will send its later [awLog] lines to the other
+  /// when another one starts will send its later `awLog` lines to the other
   /// request, or lose them if that request has already finished.
   @Deprecated(
     'Unsafe under concurrent requests. '
@@ -116,7 +116,7 @@ void awLog(Object? message, [Object? data]) {
 /// - Two arguments: `awLogError('label:', error)` - logs label and error
 ///   separately with automatic pretty-printing for Maps/Lists
 ///
-/// Picks the target execution the same way as [awLog]: the request of the
+/// Picks the target execution the same way as `awLog`: the request of the
 /// enclosing [AppwriteContext.handle] if there is one, otherwise the
 /// deprecated global fallback.
 ///

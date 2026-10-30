@@ -31,8 +31,8 @@ class AppwriteContext {
   /// Factory method to initialize AppwriteContext from dynamic context
   /// received in Appwrite Cloud Functions.
   ///
-  /// Also makes this context the process-wide fallback for [awLog] and
-  /// [awLogError]. The runtime serves concurrent requests in one process, so
+  /// Also makes this context the process-wide fallback for `awLog` and
+  /// `awLogError`. The runtime serves concurrent requests in one process, so
   /// with that fallback a long execution's lines end up in a later one, or
   /// are lost. [handle] has no such fallback.
   @Deprecated(
@@ -61,7 +61,7 @@ class AppwriteContext {
   /// ```
   ///
   /// The handler runs in a zone bound to this request, so the deprecated
-  /// [awLog] and [awLogError] stay safe inside it while code migrates.
+  /// `awLog` and `awLogError` stay safe inside it while code migrates.
   /// No global state is touched.
   static Future<T> handle<T>(
     dynamic context,
