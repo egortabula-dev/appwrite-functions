@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
 
 The package moved out of the Widgy monorepo and private registry into this
 repository, and was renamed from `widgy_appwrite_context`. Its history came

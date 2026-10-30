@@ -1,0 +1,69 @@
+name: pr-title
+
+# Squash merges turn the PR title into the commit release-please reads, so the
+# title must be a conventional commit, in English. The job also labels the PR
+# by its type, which is how the release notes are grouped.
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  check-and-label:
+    if: ${{ !startsWith(github.head_ref, 'release-please--') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const match = /^(\w+)(\([^)]+\))?(!)?: \S/.exec(pr.title);
+            const labelByType = {
+              feat: 'feature',
+              fix: 'fix',
+              perf: 'performance',
+              docs: 'documentation',
+              refactor: 'maintenance',
+              test: 'maintenance',
+              build: 'maintenance',
+              ci: 'maintenance',
+              chore: 'maintenance',
+              revert: 'fix',
+            };
+            if (!match || !(match[1] in labelByType)) {
+              core.setFailed(
+                `PR title "${pr.title}" is not a conventional commit, e.g. ` +
+                  '"feat(appwrite_functions_context): ..." or "fix: ...". ' +
+                  `Allowed types: ${Object.keys(labelByType).join(', ')}.`,
+              );
+              return;
+            }
+            if (/[А-Яа-яЁё]/.test(pr.title)) {
+              core.setFailed(
+                `PR title "${pr.title}" must be in English: it becomes the ` +
+                  'commit and the line in the release notes.',
+              );
+              return;
+            }
+
+            const managed = new Set([...Object.values(labelByType), 'breaking']);
+            const wanted = new Set([labelByType[match[1]]]);
+            if (match[3] || /BREAKING[ -]CHANGE/.test(pr.body ?? '')) {
+              wanted.add('breaking');
+            }
+
+            const { owner, repo } = context.repo;
+            const issue_number = pr.number;
+            for (const { name } of pr.labels) {
+              if (managed.has(name) && !wanted.has(name)) {
+                await github.rest.issues.removeLabel({ owner, repo, issue_number, name });
+              }
+            }
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number,
+              labels: [...wanted],
+            });
