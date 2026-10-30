@@ -1,0 +1,29 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.8 is the SDK floor, which Appwrite's runtimes still use.
+        sdk: ["3.8", stable]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ matrix.sdk }}
+      - run: dart pub get
+      - run: dart format --output=none --set-exit-if-changed packages
+        if: matrix.sdk == 'stable'
+      - run: dart analyze --fatal-infos packages
+      - run: dart test
+        working-directory: packages/appwrite_functions_context

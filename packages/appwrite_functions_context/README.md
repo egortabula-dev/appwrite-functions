@@ -50,7 +50,7 @@ no right to bring anything with it.
 dependencies:
   appwrite_functions_context:
     git:
-      url: https://github.com/egortabula/appwrite-functions.git
+      url: https://github.com/egortabula-dev/appwrite-functions.git
       path: packages/appwrite_functions_context
 ```
 
