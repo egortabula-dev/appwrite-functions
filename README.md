@@ -1,6 +1,6 @@
 # appwrite-functions
 
-[![CI](https://github.com/egortabula/appwrite-functions/actions/workflows/ci.yml/badge.svg)](https://github.com/egortabula/appwrite-functions/actions/workflows/ci.yml)
+[![CI](https://github.com/egortabula-dev/appwrite-functions/actions/workflows/ci.yml/badge.svg)](https://github.com/egortabula-dev/appwrite-functions/actions/workflows/ci.yml)
 [![Dart](https://img.shields.io/badge/Dart-%3E%3D3.8-0175C2?logo=dart)](https://dart.dev)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
