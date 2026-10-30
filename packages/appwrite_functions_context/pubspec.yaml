@@ -1,6 +1,6 @@
 name: appwrite_functions_context
 description: Type-safe wrapper for the Appwrite Cloud Functions context, with strongly typed request, response, headers, environment variables and logging.
-version: 0.3.0
+version: 0.4.0
 repository: https://github.com/egortabula/appwrite-functions
 issue_tracker: https://github.com/egortabula/appwrite-functions/issues
 
